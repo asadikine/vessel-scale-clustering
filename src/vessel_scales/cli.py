@@ -203,7 +203,7 @@ def build_parser() -> argparse.ArgumentParser:
                    help="voxel size; default: NIfTI header, or 1 for .npy")
     p.add_argument("--surface", choices=("mesh", "voxels"), default="mesh",
                    help="edge surface used for the local radius: sub-voxel mesh "
-                        "(default) or surface voxel centres")
+                        "(default) or surface voxel centres, as in the paper")
     p.add_argument("--mesh-sigma", type=float, default=0.5,
                    help="smoothing in voxels before meshing (default: 0.5)")
     p.add_argument("--neighbors", type=int, default=8,

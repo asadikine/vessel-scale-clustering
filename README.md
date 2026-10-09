@@ -43,7 +43,7 @@ vessel-scales MASK [MASK ...] -o OUTPUT_FOLDER [options]
 | `-o`, `--output` | `vessel_scales_output` | Output folder, created if it does not exist |
 | `--labels L [L ...]` | every value > 0 | Label values counted as vessel, for multi-label masks (e.g. `--labels 1 2` to keep labels 1 and 2 only) |
 | `--spacing S [S ...]` | NIfTI header (1 for `.npy`) | Voxel size, one value or one per axis |
-| `--surface {mesh,voxels}` | `mesh` | Edge surface Ω used for the local radius (see [Method](#method)) |
+| `--surface {mesh,voxels}` | `mesh` | Edge surface Ω used for the local radius: sub-voxel mesh, or surface voxels as in the paper (see [Method](#method)) |
 | `--mesh-sigma S` | 0.5 | Smoothing (voxels) before meshing the surface |
 | `--neighbors M` | 8 | m nearest surface points for the local radius (Eq. 1) |
 | `--quantiles QL QH` | 0.25 0.75 | Per-volume radius quantiles used as thresholds |
@@ -150,7 +150,7 @@ vessel-scales ircadb12_vessels.nii.gz -o results/ --figure
 
 ![Branches and 3-scale clustering of the synthetic tree](docs/synthetic_3d.png)
 
-| True radius (mm) | Scale from true radius | Mesh estimate (mm) | Scale | Voxel estimate (mm) | Scale |
+| True radius (mm) | Scale from true radius | `mesh` estimate (mm) | Scale | `voxels` estimate (mm) | Scale |
 |---|---|---|---|---|---|
 | 6.0 | large | 5.66 | large | 5.10 | large |
 | 4.0 | large | 3.53 | large | 3.24 | large |
@@ -162,8 +162,10 @@ vessel-scales ircadb12_vessels.nii.gz -o results/ --figure
 
 "Scale from true radius" applies the same per-volume quartiles to the true
 radii. With the mesh surface every branch gets that scale (100% of the voxels);
-with surface voxels the 2.0, 1.6 and 1.3 mm leaves all measure √2 = 1.41 mm,
-and the 2.0 mm leaf drops to *small* (95.9% of the voxels).
+with surface voxels (Eq. 1 of the paper, as implemented here) the 2.0, 1.6 and
+1.3 mm leaves all measure √2 = 1.41 mm, and the 2.0 mm leaf drops to *small*
+(95.9% of the voxels). On this tree, whose vessels are 1.3 to 6 voxels in
+radius, the two surfaces give almost the same clustering.
 
 ### VascuSynth tree
 
@@ -175,22 +177,25 @@ is the median radius of the VascuSynth segments closest to its skeleton.
 | Surface Ω | Distinct radii | Correlation with true radius | Median error (voxels) | Small / medium / large | Same scale as with true radii |
 |---|---|---|---|---|---|
 | `mesh` (default) | 98 | 0.94 | +0.33 | 26 / 50 / 25 | 80% of branches |
-| `voxels` | 10 | 0.12 | +0.59 | 73 / 3 / 25 | 21% of branches |
+| `voxels` (Eq. 1, as in the paper) | 10 | 0.12 | +0.59 | 73 / 3 / 25 | 21% of branches |
 
-With the true radii the 101 branches split 26 / 50 / 25. Most vessels here are
-0.4 to 2.6 voxels in radius. With surface voxels, distances can only take a few
-values (1, √2, √3, 2 …): 73 branches measure exactly √2, which is also Q1, so
-the voxel estimate barely follows the true radius and the scales collapse into
-*small*. The mesh surface gives continuous radii that follow the truth. The
-positive error comes from the binarisation (every voxel touched by a vessel
-counts as vessel), which thickens thin vessels.
+With the true radii the 101 branches split 26 / 50 / 25. This volume has a
+low resolution for its vessels: most of them are 0.4 to 2.6 voxels in radius.
+With surface voxels, as implemented here, distances can only take a few values
+(1, √2, √3, 2 …): 73 branches measure exactly √2, which is also Q1, so on this
+volume the voxel estimate barely follows the true radius and the scales
+collapse into *small*. The mesh surface gives continuous radii that follow the
+truth, which makes it an improvement for thin vessels. The difference has not
+been measured on real CT. The positive error comes from the binarisation
+(every voxel touched by a vessel counts as vessel), which thickens thin
+vessels.
 
 ## Method
 
 | Step | Paper | Implementation |
 |---|---|---|
 | Skeleton Γ | Sect. 2.1, thinning [Lee et al., 1994] | `skimage.morphology.skeletonize(method="lee")` |
-| Surface Ω | Sect. 2.1, edge surface detection | `mesh` (default): vertices of the marching-cubes surface (level 0.5) of the mask smoothed by a Gaussian of 0.5 voxel, with every mask voxel kept inside the surface so that no thin vessel is smoothed away. `voxels`: centres of the mask voxels with a face-neighbour outside the mask |
+| Surface Ω | Sect. 2.1: the closest vessel surface voxels | `voxels`: centres of the mask voxels with a face-neighbour outside the mask, as in the paper. `mesh` (default, not in the paper): vertices of the marching-cubes surface (level 0.5) of the mask smoothed by a Gaussian of 0.5 voxel, with every mask voxel kept inside the surface so that no thin vessel is smoothed away |
 | Local radius σ̂ₖ | Eq. 1, m = 8 | Largest distance from γₖ to its `n_neighbors` (default 8) nearest surface points (k-d tree, in physical units) |
 | Skeleton branches | unsupervised branch clustering | `skan.csr.Skeleton(...).path_label_image()`: the skeleton graph is split at junction and end points, one label per path |
 | Branch radius r̂ⱼ | Eq. 2 | Median of σ̂ₖ over the voxels of branch j |
@@ -199,12 +204,18 @@ counts as vessel), which thickens thin vessels.
 
 `quantiles=(0.25, 0.75)` and `n_neighbors=8` are the paper's settings.
 
+### Difference from the paper
+
+- **Surface Ω.** In the paper, Eq. 1 measures distances to the closest vessel
+  surface *voxels*; `--surface voxels` does exactly that. The default sub-voxel
+  surface mesh is an addition of this repository, not a correction of the
+  paper: when vessels are only a few voxels wide, voxel distances can only take
+  a few values (1, √2, √3, …), and the mesh gives finer radii (see the
+  VascuSynth results). On thicker vessels both surfaces give nearly the same
+  scales (see the synthetic tree). Everything else follows Sect. 2.1.
+
 ### Implementation choices not specified in the paper
 
-- **Surface Ω.** The paper does not say whether Ω is made of voxels or of
-  sub-voxel points. The default here is the sub-voxel mesh because it follows
-  the true radius much better on thin vessels (see the results);
-  `--surface voxels` gives the voxel version.
 - **Ties at a threshold.** A branch whose radius equals Q1 is *small*; one equal
   to Q3 is *medium*. Ties are frequent with `--surface voxels`.
 - **Junction voxels.** skan assigns each junction voxel to one of the paths
