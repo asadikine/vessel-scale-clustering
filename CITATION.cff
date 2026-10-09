@@ -1,0 +1,36 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite the paper below."
+title: "vessel-scale-clustering"
+version: 1.1.0
+license: Apache-2.0
+authors:
+  - family-names: Sadikine
+    given-names: Amine
+preferred-citation:
+  type: conference-paper
+  title: "Scale-Specific Auxiliary Multi-Task Contrastive Learning for Deep Liver Vessel Segmentation"
+  authors:
+    - family-names: Sadikine
+      given-names: A.
+    - family-names: Badic
+      given-names: B.
+    - family-names: Tasu
+      given-names: J.-P.
+    - family-names: Noblet
+      given-names: V.
+    - family-names: Ballet
+      given-names: P.
+    - family-names: Visvikis
+      given-names: D.
+    - family-names: Conze
+      given-names: P.-H.
+  collection-title: "2023 IEEE 20th International Symposium on Biomedical Imaging (ISBI)"
+  year: 2023
+  start: 1
+  end: 5
+  doi: "10.1109/ISBI53787.2023.10230364"
+  identifiers:
+    - type: doi
+      value: "10.1109/ISBI53787.2023.10230364"
+    - type: other
+      value: "arXiv:2409.12333"

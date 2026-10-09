@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vessel-scale-clustering"
+version = "1.1.0"
+description = "Decompose binary vessel masks into small, medium and large vessels from skeleton branch radii (Sadikine et al., ISBI 2023, Sect. 2.1)."
+readme = "README.md"
+license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE"]
+requires-python = ">=3.9"
+authors = [{ name = "Amine Sadikine" }]
+dependencies = [
+    "numpy>=1.22",
+    "scipy>=1.8",
+    "scikit-image>=0.19",
+    "skan>=0.11",
+]
+
+[project.optional-dependencies]
+nifti = ["nibabel>=4"]
+figure = ["matplotlib>=3.5"]
+test = ["pytest>=7", "nibabel>=4", "matplotlib>=3.5"]
+
+[project.scripts]
+vessel-scales = "vessel_scales.cli:main"
+
+[project.urls]
+Paper = "https://doi.org/10.1109/ISBI53787.2023.10230364"
+Preprint = "https://arxiv.org/abs/2409.12333"
+
+[tool.setuptools.packages.find]
+where = ["src"]

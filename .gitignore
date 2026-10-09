@@ -1,0 +1,19 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.venv/
+
+# outputs of the command line and the examples
+vessel_scales_output/
+results/
+
+# imaging data, except the example masks shipped with the repository
+*.nii
+*.nii.gz
+!examples/data/*.nii.gz
+
+# macOS
+.DS_Store
