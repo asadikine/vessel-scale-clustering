@@ -21,7 +21,8 @@ dependencies = [
 [project.optional-dependencies]
 nifti = ["nibabel>=4"]
 figure = ["matplotlib>=3.5"]
-test = ["pytest>=7", "nibabel>=4", "matplotlib>=3.5"]
+ircadb = ["nibabel>=4", "pydicom>=2.3"]
+test = ["pytest>=7", "nibabel>=4", "matplotlib>=3.5", "pydicom>=2.3"]
 
 [project.scripts]
 vessel-scales = "vessel_scales.cli:main"

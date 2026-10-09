@@ -2,7 +2,7 @@
 
 examples:
   vessel-scales mask.nii.gz -o results/ --figure
-  vessel-scales labelsTr/hepaticvessel_001.nii.gz --labels 1 -o results/ --figure
+  vessel-scales labels.nii.gz --labels 1 2 -o results/ --figure
   vessel-scales masks/*.nii.gz -o results/
   vessel-scales mask.npy --spacing 0.7 0.7 1.6 -o results/
 
@@ -197,8 +197,8 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("-o", "--output", type=Path, default=Path("vessel_scales_output"),
                    help="output folder, created if needed (default: vessel_scales_output)")
     p.add_argument("--labels", type=int, nargs="+",
-                   help="label values counted as vessel (default: every value > 0); "
-                        "use --labels 1 for MSD Task08, where 2 is tumour")
+                   help="label values counted as vessel, for multi-label masks "
+                        "(default: every value > 0)")
     p.add_argument("--spacing", type=float, nargs="+",
                    help="voxel size; default: NIfTI header, or 1 for .npy")
     p.add_argument("--surface", choices=("mesh", "voxels"), default="mesh",

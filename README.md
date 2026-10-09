@@ -41,7 +41,7 @@ vessel-scales MASK [MASK ...] -o OUTPUT_FOLDER [options]
 | Option | Default | Meaning |
 |---|---|---|
 | `-o`, `--output` | `vessel_scales_output` | Output folder, created if it does not exist |
-| `--labels L [L ...]` | every value > 0 | Label values counted as vessel (`--labels 1` for MSD Task08, where 2 is tumour) |
+| `--labels L [L ...]` | every value > 0 | Label values counted as vessel, for multi-label masks (e.g. `--labels 1 2` to keep labels 1 and 2 only) |
 | `--spacing S [S ...]` | NIfTI header (1 for `.npy`) | Voxel size, one value or one per axis |
 | `--surface {mesh,voxels}` | `mesh` | Edge surface Ω used for the local radius (see [Method](#method)) |
 | `--mesh-sigma S` | 0.5 | Smoothing (voxels) before meshing the surface |
@@ -131,14 +131,17 @@ python examples/vascusynth/compare_ground_truth.py \
     examples/data/vascusynth_tree.nii.gz examples/data/vascusynth_tree_structure.mat
 ```
 
-### 3. Real hepatic vessel mask
+### 3. Real hepatic vessels: 3D-IRCADb-01
 
-A liver vessel mask from the Medical Segmentation Decathlon (Task08 Hepatic
-Vessel). See [examples/real](examples/real/README.md) for where to download it
-and how to run it.
+Liver vessel masks from the [3D-IRCADb-01](https://www.ircad.fr/research-and-development/data-sets/liver-segmentation-3d-ircadb-01/)
+CT dataset, stored as DICOM series. The data are not included here (their
+licence forbids redistributing modified data); see
+[examples/ircadb](examples/ircadb/README.md) to download a patient, convert its
+portal vein and hepatic veins to a NIfTI mask, and run the clustering.
 
 ```bash
-vessel-scales hepaticvessel_001.nii.gz --labels 1 -o results/ --figure
+python examples/ircadb/ircadb_to_nifti.py 3Dircadb1.12 ircadb12_vessels.nii.gz --ct ircadb12_ct.nii.gz
+vessel-scales ircadb12_vessels.nii.gz -o results/ --figure
 ```
 
 ## Results
@@ -231,7 +234,8 @@ The tests check the clustering on the synthetic tree (partition of the mask,
 branches, sub-voxel radius accuracy, agreement with the scales of the true
 radii, for both surfaces), the command line on a NIfTI file with an oblique
 affine, anisotropic voxels and a tumour label (geometry and header preserved,
-label selection, every output), and the VascuSynth converter.
+label selection, every output), and the VascuSynth and 3D-IRCADb-01
+converters (the latter on synthetic DICOM series).
 
 ## Citation
 
